@@ -1,0 +1,12 @@
+database:
+  connection_string: ${DATABASE_CONNECTION_STRING}
+  pool_min_size: 1
+  pool_max_size: 10
+
+qdrant:
+  host: ${QDRANT_HOST}
+  port: 6333
+  collection_name: "regulatory_compliance"
+
+langgraph:
+  checkpoint_db_url: ${LANGGRAPH_CHECKPOINT_DB_URL}

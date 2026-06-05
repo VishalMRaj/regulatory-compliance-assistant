@@ -1,49 +1,7 @@
 import os
 import yaml
-from typing import Any, Dict
-
-class Config:
-    def __init__(self, config_dict: Dict[str, Any]):
-        self._config = config_dict
-
-    def get(self, key: str, default: Any = None) -> Any:
-        keys = key.split('.')
-        value = self._config
-        for k in keys:
-            if isinstance(value, dict):
-                value = value.get(k)
-            else:
-                return default
-            if value is None:
-                return default
-        return value
-
-def load_config(config_path: str = "config/config.yaml") -> Config:
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Configuration file not found: {config_path}")
-
-    with open(config_path, 'r') as f:
-        config_dict = yaml.safe_load(f)
-
-    # Override with environment variables if present
-    db_conn = os.environ.get("DATABASE_CONNECTION_STRING")
-    if db_conn:
-        if 'database' not in config_dict:
-            config_dict['database'] = {}
-        config_dict['database']['connection_string'] = db_conn
-
-    qdrant_host = os.environ.get("QDRANT_HOST")
-    if qdrant_host:
-        if 'qdrant' not in config_dict:
-            config_dict['qdrant'] = {}
-        config_dict['qdrant']['host'] = qdrant_host
-
-    return Config(config_dict)
-
-# Global configuration instance
-config = load_config()
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +21,9 @@ class ConfigValidationError(ConfigError):
 
 @dataclass(frozen=True)
 class DatabaseConfig:
+    connection_string: Optional[str]
+    pool_min_size: int
+    pool_max_size: int
     host: str
     port: int
     user: str
@@ -70,11 +31,17 @@ class DatabaseConfig:
     database: str
 
 @dataclass(frozen=True)
+class QdrantConfig:
+    host: str
+    port: int
+    collection_name: str
+
+@dataclass(frozen=True)
 class AppConfig:
     database: DatabaseConfig
+    qdrant: QdrantConfig
 
 def get_env_or_config(config_dict: Dict, keys: list, env_var: str, default: Any = None) -> Any:
-    """Helper to get value from environment variable or config dictionary."""
     env_val = os.getenv(env_var)
     if env_val is not None:
         return env_val
@@ -83,6 +50,10 @@ def get_env_or_config(config_dict: Dict, keys: list, env_var: str, default: Any 
     try:
         for k in keys:
             curr = curr[k]
+        # Handle cases where the value might be a string with ${VAR}
+        if isinstance(curr, str) and curr.startswith("${") and curr.endswith("}"):
+            var_name = curr[2:-1]
+            return os.getenv(var_name, default)
         return curr
     except (KeyError, TypeError):
         return default
@@ -100,20 +71,40 @@ def load_config(config_path: str = "config/config.yaml") -> AppConfig:
         logger.warning(f"Configuration file not found: {config_path}. Relying on environment variables.")
 
     try:
-        host = get_env_or_config(config_dict, ["database", "state_store", "host"], "DB_HOST", "localhost")
-        port = int(get_env_or_config(config_dict, ["database", "state_store", "port"], "DB_PORT", 5432))
-        user = get_env_or_config(config_dict, ["database", "state_store", "user"], "DB_USER", "postgres")
-        password = get_env_or_config(config_dict, ["database", "state_store", "password"], "DB_PASSWORD", "password")
-        database = get_env_or_config(config_dict, ["database", "state_store", "database"], "DB_NAME", "compliance_state")
+        # Database
+        db_conn = get_env_or_config(config_dict, ["database", "connection_string"], "DATABASE_CONNECTION_STRING")
+        db_min = int(get_env_or_config(config_dict, ["database", "pool_min_size"], "DB_POOL_MIN", 1))
+        db_max = int(get_env_or_config(config_dict, ["database", "pool_max_size"], "DB_POOL_MAX", 10))
+
+        db_host = get_env_or_config(config_dict, ["database", "state_store", "host"], "DB_HOST", "localhost")
+        db_port = int(get_env_or_config(config_dict, ["database", "state_store", "port"], "DB_PORT", 5432))
+        db_user = get_env_or_config(config_dict, ["database", "state_store", "user"], "DB_USER", "postgres")
+        db_pass = get_env_or_config(config_dict, ["database", "state_store", "password"], "DB_PASSWORD", "password")
+        db_name = get_env_or_config(config_dict, ["database", "state_store", "database"], "DB_NAME", "compliance_state")
 
         db_config = DatabaseConfig(
-            host=host,
-            port=port,
-            user=user,
-            password=password,
-            database=database
+            connection_string=db_conn,
+            pool_min_size=db_min,
+            pool_max_size=db_max,
+            host=db_host,
+            port=db_port,
+            user=db_user,
+            password=db_pass,
+            database=db_name
         )
-        return AppConfig(database=db_config)
+
+        # Qdrant
+        qd_host = get_env_or_config(config_dict, ["qdrant", "host"], "QDRANT_HOST", "localhost")
+        qd_port = int(get_env_or_config(config_dict, ["qdrant", "port"], "QDRANT_PORT", 6333))
+        qd_coll = get_env_or_config(config_dict, ["qdrant", "collection_name"], "QDRANT_COLLECTION", "regulatory_compliance")
+
+        qdrant_config = QdrantConfig(
+            host=qd_host,
+            port=qd_port,
+            collection_name=qd_coll
+        )
+
+        return AppConfig(database=db_config, qdrant=qdrant_config)
     except Exception as e:
         logger.error(f"Configuration validation failed: {e}")
         raise ConfigValidationError(f"Validation failed: {e}")

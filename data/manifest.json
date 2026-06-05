@@ -1,0 +1,22 @@
+{
+  "documents": [
+    {
+      "doc_id": "REG-2024-001",
+      "text": "All financial institutions must maintain a minimum capital adequacy ratio of 10%.",
+      "version": "1.0",
+      "status": "active",
+      "effective_start": "2024-01-01",
+      "effective_end": null,
+      "jurisdiction": "US"
+    },
+    {
+      "doc_id": "REG-2024-002",
+      "text": "Customer due diligence must be performed for all transactions exceeding $10,000.",
+      "version": "2.1",
+      "status": "active",
+      "effective_start": "2024-03-15",
+      "effective_end": null,
+      "jurisdiction": "EU"
+    }
+  ]
+}

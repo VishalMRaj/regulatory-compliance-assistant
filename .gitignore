@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Qdrant Database Local Storage
+qdrant_storage/
+
+# Raw/Local Data (Optional but recommended for large regulatory source PDFs if they are ingested)
+data/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*
+secrets/
+
+# IDE / Editor Settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+db.db
+Desktop.ini
+.DS_Store
+
+# Temporary & Log Files
+*.log
+tmp/
+temp/
+
+# Non-code Design Records / Documentation files not needed for production execution
+ADR-FiServ.docx
+session-context.md

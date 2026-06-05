@@ -8,3 +8,10 @@ services:
     volumes:
       - ./qdrant_storage:/qdrant/storage
     restart: always
+  langfuse-db:
+    image: postgres:16-alpine
+    ports: ["5432:5432"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: langfuse

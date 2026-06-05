@@ -1,12 +1,9 @@
 import unittest
 from unittest.mock import MagicMock, patch
 import datetime
-import psycopg2
 
-# Mock the database before importing api_services
-with patch('psycopg2.pool.ThreadedConnectionPool'):
-    from src import api_services
-    from src.database import DatabaseManager
+from src import api_services
+from src.database import DatabaseManager
 
 class TestApiServices(unittest.TestCase):
 
@@ -96,10 +93,10 @@ class TestApiServices(unittest.TestCase):
             None, {"configurable": {"thread_id": "sess1"}}
         )
 
-    def test_resume_workflow_checkpoint_psycopg2_error(self):
-        api_services.workflow.get_state.side_effect = psycopg2.Error("Postgres error")
+    def test_resume_workflow_checkpoint_error(self):
+        api_services.workflow.get_state.side_effect = Exception("Postgres error")
 
-        with self.assertRaises(psycopg2.Error):
+        with self.assertRaises(Exception):
             api_services.resume_workflow_checkpoint("sess1", True, "Approved")
 
 if __name__ == '__main__':

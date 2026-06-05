@@ -54,17 +54,84 @@ def main():
 def render_officer_workspace():
     """Renders the specialized workspace view for compliance officers."""
     st.header("📋 Compliance Officer Workspace")
-    st.subheader("Pending Transaction Screenings")
+
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        render_risk_inbox()
+
+    with col2:
+        render_analysis_dashboard()
+
+def render_risk_inbox():
+    """Renders the 'Pending Risk Inbox' list layout."""
+    st.subheader("Pending Risk Inbox")
 
     try:
         pending_inbox = api_services.get_pending_inbox()
-        if pending_inbox:
-            st.table(pd.DataFrame(pending_inbox))
-        else:
-            st.info("No pending screenings at this time.")
+        if not pending_inbox:
+            st.info("No pending screenings.")
+            return
+
+        for item in pending_inbox:
+            sess_id = item.get("session_id")
+            metadata = item.get("metadata", {})
+            amount = metadata.get("amount", "N/A")
+
+            # Transaction ID card selection
+            if st.button(f"🆔 {sess_id}\n\nAmt: ${amount}", key=f"btn_{sess_id}"):
+                st.session_state.selected_session_id = sess_id
+                st.rerun()
+
     except Exception as e:
         logger.error(f"Failed to load pending inbox: {e}")
-        st.error("Error loading task inbox.")
+        st.error("Error loading inbox.")
+
+def render_analysis_dashboard():
+    """Renders the chat-style analysis dashboard and validation interface."""
+    selected_id = st.session_state.get("selected_session_id")
+    if not selected_id:
+        st.info("Select a transaction from the inbox to begin analysis.")
+        return
+
+    st.subheader(f"Analysis: {selected_id}")
+
+    state = api_services.get_session_state(selected_id)
+    if not state:
+        st.warning("Could not retrieve active graph state.")
+        return
+
+    # Chat-style display for analysis conclusions
+    st.markdown("### 🤖 Reasoning Model Analysis")
+    notes = state.get("notes", "No analysis notes available.")
+    risk = state.get("risk_rating", "PENDING")
+
+    st.chat_message("assistant").write(f"**Current Risk Rating:** {risk}")
+    st.chat_message("assistant").write(notes)
+
+    # Validation Interface
+    st.divider()
+    val_notes = st.text_area("Compliance Validation Notes", placeholder="Enter your justification here...")
+
+    btn_col1, btn_col2 = st.columns(2)
+    with btn_col1:
+        if st.button("✅ Approve and Clear", use_container_width=True):
+            handle_validation(selected_id, True, val_notes)
+    with btn_col2:
+        if st.button("🚩 Flag and Defend", use_container_width=True):
+            handle_validation(selected_id, False, val_notes)
+
+def handle_validation(session_id: str, approved: bool, notes: str):
+    """Handles the submission of compliance validation."""
+    try:
+        api_services.resume_workflow_checkpoint(session_id, approved, notes)
+        st.success(f"Session {session_id} {'approved' if approved else 'flagged'} successfully.")
+        # Clear selection after action
+        del st.session_state.selected_session_id
+        st.rerun()
+    except Exception as e:
+        logger.error(f"Validation submission failed: {e}")
+        st.error("Failed to submit validation.")
 
 def render_auditor_grid():
     """Renders the audit sheet data grid for internal auditors."""
@@ -100,6 +167,7 @@ def render_head_dashboard():
         ax.bar(df_risk['Risk Level'], df_risk['Count'], color=['#ff4b4b', '#ffa500', '#2ea043'])
         ax.set_ylabel('Number of Cases')
         st.pyplot(fig)
+        plt.close(fig)
 
     with col2:
         st.subheader("Summary Metrics")

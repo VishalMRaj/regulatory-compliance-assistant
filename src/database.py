@@ -51,9 +51,13 @@ class DatabaseManager:
         return cls._instance
 
     @classmethod
-    def get_connection(cls):
+    def get_connection(cls, timeout: float = 2.0):
         """Maintains backward compatibility with psycopg2 style callers."""
-        return cls.get_instance().pool.getconn()
+        try:
+            return cls.get_instance().pool.getconn(timeout=timeout)
+        except Exception as e:
+            logger.error(f"Failed to get connection: {e}")
+            raise
 
     @classmethod
     def release_connection(cls, conn):

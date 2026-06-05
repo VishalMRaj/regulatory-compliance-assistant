@@ -1,7 +1,7 @@
 
 Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
 
-2026-06-05 09:00:18.328 Uvicorn server started on 0.0.0.0:8501
+2026-06-05 09:15:54.672 Uvicorn server started on 0.0.0.0:8501
 
   You can now view your Streamlit app in your browser.
 
@@ -96,6 +96,10 @@ Multiple connection attempts failed. All failures were:
 	Is the server running on that host and accepting TCP/IP connections?
 - host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 2.00 sec
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+ERROR:__main__:Failed to load pending inbox: couldn't get a connection after 2.00 sec
 WARNING:psycopg.pool:error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
 Multiple connection attempts failed. All failures were:
@@ -124,6 +128,12 @@ Multiple connection attempts failed. All failures were:
 	Is the server running on that host and accepting TCP/IP connections?
 - host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 2.00 sec
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+ERROR:__main__:Failed to load audit ledger: couldn't get a connection after 2.00 sec
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 2.00 sec
 WARNING:psycopg.pool:error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
 Multiple connection attempts failed. All failures were:
@@ -152,6 +162,10 @@ Multiple connection attempts failed. All failures were:
 	Is the server running on that host and accepting TCP/IP connections?
 - host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 2.00 sec
+ERROR:src.database:Failed to get connection: couldn't get a connection after 2.00 sec
+ERROR:__main__:Failed to load pending inbox: couldn't get a connection after 2.00 sec
 WARNING:psycopg.pool:error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
 Multiple connection attempts failed. All failures were:
@@ -180,9 +194,6 @@ Multiple connection attempts failed. All failures were:
 	Is the server running on that host and accepting TCP/IP connections?
 - host: 'localhost', port: '5432', hostaddr: '127.0.0.1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
-WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 30.00 sec
-WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 30.00 sec
-WARNING:__main__:Database profile lookup failed, using simulation fallback: couldn't get a connection after 30.00 sec
 WARNING:psycopg.pool:error connecting in 'pool-1': connection failed: connection to server at "127.0.0.1", port 5432 failed: Connection refused
 	Is the server running on that host and accepting TCP/IP connections?
 Multiple connection attempts failed. All failures were:

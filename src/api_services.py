@@ -2,13 +2,22 @@ import logging
 import psycopg2
 from typing import List, Dict, Any, Optional
 from .database import DatabaseManager
-# Assuming workflow is defined and imported from the graph module
-# from .workflow import workflow
+from .graph import get_compliance_workflow
 
 logger = logging.getLogger(__name__)
 
-# Placeholder for the workflow object, in a real scenario this would be imported
+# Initialize the workflow graph from the graph module
 workflow = None
+
+def _initialize_workflow():
+    global workflow
+    if workflow is None:
+        try:
+            _workflow_wrapper = get_compliance_workflow()
+            workflow = _workflow_wrapper.graph
+        except Exception as e:
+            logger.error(f"Failed to initialize workflow: {e}")
+            workflow = None
 
 def get_user_profile(username: str) -> Optional[Dict[str, Any]]:
     query = "SELECT metadata, structural_roles FROM compliance_users WHERE username = %s"
@@ -28,6 +37,7 @@ def get_user_profile(username: str) -> Optional[Dict[str, Any]]:
 
 def submit_transaction_screening(session_id: str, payload: Dict[str, Any]) -> Any:
     config = {"configurable": {"thread_id": session_id}}
+    _initialize_workflow()
     try:
         if workflow is None:
             logger.error("Workflow graph is not initialized.")
@@ -39,6 +49,7 @@ def submit_transaction_screening(session_id: str, payload: Dict[str, Any]) -> An
 
 def resume_workflow_checkpoint(session_id: str, officer_approval: bool, notes: str) -> Any:
     config = {"configurable": {"thread_id": session_id}}
+    _initialize_workflow()
     try:
         if workflow is None:
             logger.error("Workflow graph is not initialized.")
@@ -64,11 +75,8 @@ def resume_workflow_checkpoint(session_id: str, officer_approval: bool, notes: s
         # Release the execution pause checkpoint by invoking with None input
         return workflow.invoke(None, config)
 
-    except psycopg2.Error as e:
-        logger.error(f"Postgres exception during workflow resume: {e}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error during workflow resume: {e}")
+    except (psycopg2.Error, Exception) as e:
+        logger.error(f"Error during workflow resume: {e}")
         raise
 
 def get_pending_inbox() -> List[Dict[str, Any]]:
@@ -84,6 +92,15 @@ def get_pending_inbox() -> List[Dict[str, Any]]:
             ]
     finally:
         DatabaseManager.release_connection(conn)
+
+def get_session_state(session_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieves the current state snapshot for a given session."""
+    try:
+        workflow_wrapper = get_compliance_workflow()
+        return workflow_wrapper.get_state(session_id)
+    except Exception as e:
+        logger.error(f"Error fetching state for session {session_id}: {e}")
+        return None
 
 def update_session_state(session_id: str, status: str, notes: str) -> bool:
     query = """

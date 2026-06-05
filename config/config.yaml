@@ -10,9 +10,3 @@ qdrant:
 
 langgraph:
   checkpoint_db_url: ${LANGGRAPH_CHECKPOINT_DB_URL}
-  state_store:
-    host: localhost
-    port: 5432
-    user: postgres
-    password: password
-    database: compliance_state

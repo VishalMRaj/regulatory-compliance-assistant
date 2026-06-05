@@ -120,6 +120,7 @@ class RegulatoryIngestor:
 if __name__ == "__main__":
     try:
         ingestor = RegulatoryIngestor()
+        ingestor.initialize_collection()
         # Use a relative path to the manifest file
         manifest_file = os.path.join("data", "manifest.json")
         ingestor.upsert_regulatory_data(manifest_file)

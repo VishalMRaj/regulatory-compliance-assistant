@@ -1,6 +1,8 @@
 import logging
+import os
 from typing import Dict, Any, Optional
 
+from langfuse.langchain import CallbackHandler
 from langgraph.graph import StateGraph
 from langgraph.checkpoint.postgres import PostgresSaver
 from src.database import get_db_manager
@@ -58,14 +60,38 @@ class ComplianceWorkflow:
             logger.error(f"Error reading state for thread {thread_id}: {e}")
             raise WorkflowPersistenceError(f"Read failed: {e}")
 
-    def resume_workflow(self, thread_id: str, inputs: Optional[Dict[str, Any]] = None):
+    def resume_workflow(self, thread_id: str, inputs: Optional[Dict[str, Any]] = None, config: Optional[Dict[str, Any]] = None):
         """Resumes or starts a workflow execution for a given thread_id."""
-        config = {"configurable": {"thread_id": thread_id}}
+        full_config = {"configurable": {"thread_id": thread_id}}
+        if config:
+            full_config.update(config)
+
         try:
-            return self.graph.invoke(inputs, config=config)
+            return self.graph.invoke(inputs, config=full_config)
         except Exception as e:
             logger.error(f"Error resuming workflow for thread {thread_id}: {e}")
             raise WorkflowError(f"Execution failed: {e}")
+
+# Global singleton for Langfuse CallbackHandler
+_langfuse_handler = None
+
+def get_langfuse_handler():
+    global _langfuse_handler
+    if _langfuse_handler is None:
+        public_key = os.getenv("LANGFUSE_PUBLIC_KEY")
+        secret_key = os.getenv("LANGFUSE_SECRET_KEY")
+        host = os.getenv("LANGFUSE_HOST", os.getenv("LANGFUSE_BASE_URL", "https://cloud.langfuse.com"))
+
+        if public_key and secret_key:
+            _langfuse_handler = CallbackHandler(
+                public_key=public_key,
+                secret_key=secret_key,
+                host=host
+            )
+            logger.info("Langfuse CallbackHandler initialized.")
+        else:
+            logger.warning("Langfuse credentials missing; observability disabled.")
+    return _langfuse_handler
 
 # Global instance for the workflow
 _workflow_instance = None

@@ -12,7 +12,11 @@ def get_user_session_role(username: str) -> str:
     try:
         profile = api_services.get_user_profile(username)
         if profile:
-            return profile.get("structural_roles", ["GUEST"])[0]
+            roles = profile.get("structural_roles", ["GUEST"])
+            if isinstance(roles, list) and len(roles) > 0:
+                return roles[0]
+            elif isinstance(roles, str):
+                return roles
     except Exception as e:
         logger.warning(f"Database profile lookup failed, using simulation fallback: {e}")
 

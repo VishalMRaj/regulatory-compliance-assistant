@@ -1,7 +1,7 @@
 import logging
 from typing import List, Dict, Any, Optional
 from .database import DatabaseManager
-from .graph import get_compliance_workflow
+from .graph import get_compliance_workflow, get_langfuse_handler
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +21,9 @@ def _initialize_workflow():
 def get_user_profile(username: str) -> Optional[Dict[str, Any]]:
     # Mock data for simulation
     mock_users = {
-        "compliance_officer_sim": {"metadata": {}, "structural_roles": "COMPLIANCE_OFFICER"},
-        "internal_auditor_sim": {"metadata": {}, "structural_roles": "INTERNAL_AUDITOR"},
-        "compliance_head_sim": {"metadata": {}, "structural_roles": "COMPLIANCE_HEAD"},
+        "compliance_officer_sim": {"metadata": {}, "structural_roles": ["COMPLIANCE_OFFICER"]},
+        "internal_auditor_sim": {"metadata": {}, "structural_roles": ["INTERNAL_AUDITOR"]},
+        "compliance_head_sim": {"metadata": {}, "structural_roles": ["COMPLIANCE_HEAD"]},
     }
 
     try:
@@ -46,7 +46,11 @@ def get_user_profile(username: str) -> Optional[Dict[str, Any]]:
     return mock_users.get(username)
 
 def submit_transaction_screening(session_id: str, payload: Dict[str, Any]) -> Any:
+    handler = get_langfuse_handler()
     config = {"configurable": {"thread_id": session_id}}
+    if handler:
+        config["callbacks"] = [handler]
+
     _initialize_workflow()
     try:
         if workflow is None:
@@ -58,7 +62,11 @@ def submit_transaction_screening(session_id: str, payload: Dict[str, Any]) -> An
         raise
 
 def resume_workflow_checkpoint(session_id: str, officer_approval: bool, notes: str) -> Any:
+    handler = get_langfuse_handler()
     config = {"configurable": {"thread_id": session_id}}
+    if handler:
+        config["callbacks"] = [handler]
+
     _initialize_workflow()
     try:
         if workflow is None:

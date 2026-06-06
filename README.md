@@ -1,4 +1,4 @@
-# 🏦 FinServ Global Regulatory Compliance Assistant
+# 🏦 Global Regulatory Compliance Assistant
 
 > **A self-hosted, LLM-powered compliance engine** that screens cross-border financial transactions, answers regulatory questions from a versioned knowledge base, assesses the impact of new circulars, and generates audit-ready reports — all without sending a single byte of financial data to external cloud APIs.
 
@@ -94,43 +94,60 @@ External Source (SWIFT / Core Banking / TMS)
 
 ## UI Screenshots
 
+### 👮 Compliance Officer Workspace
+
 <table>
-<tr>
-<td width="50%">
+  <tr>
+    <td width="50%">
+      <b>Risk Inbox & Review</b><br>
+      <i>Main queue for transaction screening alerts</i>
+      <img src="tests/results/compliance_officer_view.png" alt="Compliance Officer View" width="100%"/>
+    </td>
+    <td width="50%">
+      <b>Regulatory Q&A Chat</b><br>
+      <i>Fast RAG lookup for versioned regulations</i>
+      <img src="tests/results/qa_chat.png" alt="Regulatory Q&A" width="100%"/>
+    </td>
+  </tr>
+</table>
 
-**Compliance Officer — Risk Inbox & Review**
-![Officer View](tests/results/compliance_officer_view.png)
+### 🔍 Internal Auditor Workspace
 
-</td>
-<td width="50%">
+<table>
+  <tr>
+    <td width="33%">
+      <b>Historical Ledger</b><br>
+      <i>Audit trail of all transaction decisions</i>
+      <img src="tests/results/internal_audit_view.png" alt="Historical Ledger" width="100%"/>
+    </td>
+    <td width="33%">
+      <b>Regulatory Change Impact</b><br>
+      <i>Submit circulars to assess system impact</i>
+      <img src="tests/results/regulatory_change_impact.png" alt="Regulatory Change Impact" width="100%"/>
+    </td>
+    <td width="33%">
+      <b>Impact Analysis</b><br>
+      <i>LLM assessment of affected transaction types</i>
+      <img src="tests/results/regulatory_change_impact_analysis.png" alt="Change Impact Analysis" width="100%"/>
+    </td>
+  </tr>
+</table>
 
-**Compliance Officer — Regulatory Q&A**
-![Q&A Chat](tests/results/qa_chat.png)
+### 📈 Compliance Head Dashboard
 
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-**Internal Auditor — Ledger & Trace Links**
-![Auditor View](tests/results/internal_audit_view.png)
-
-</td>
-<td width="50%">
-
-**Internal Auditor — Regulatory Change Impact**
-![Change Impact](tests/results/regulatory_change_impact.png)
-
-</td>
-</tr>
-<tr>
-<td colspan="2">
-
-**Compliance Head — Executive KPI Dashboard**
-![Head View](tests/results/compliance_head_view.png)
-
-</td>
-</tr>
+<table>
+  <tr>
+    <td width="50%">
+      <b>Executive KPI Dashboard</b><br>
+      <i>Macro compliance metrics and breach trends</i>
+      <img src="tests/results/compliance_head_view.png" alt="Compliance Head View" width="100%"/>
+    </td>
+    <td width="50%">
+      <b>Audit Report Generator</b><br>
+      <i>Generate and download Markdown audit reports</i>
+      <img src="tests/results/audit_report_generation.png" alt="Audit Report Generation" width="100%"/>
+    </td>
+  </tr>
 </table>
 
 ---

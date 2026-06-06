@@ -1,4 +1,4 @@
-# 🏦 Architecture Assessment Report: FinServ Global Compliance Assistant
+# 🏦 Architecture Assessment Report: Global Regulatory Compliance Assistant
 **Submission Date:** June 9, 2026  
 **Status:** Ready for Technical Evaluation  
 

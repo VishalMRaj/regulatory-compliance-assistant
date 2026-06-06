@@ -172,6 +172,10 @@ External Source (SWIFT / Core Banking / TMS)
 
 ```
 regulatory-compliance-assistant/
+├── ADR/                         # Architecture Decision Records
+│   ├── adr_001_vector_db.pdf    # Vector Database selection details
+│   ├── adr_002_model_hosting.pdf# Self-hosted model selection details
+│   └── adr_003_guardrails.pdf   # Architectural guardrails details
 ├── config/
 │   ├── config.yaml              # Infrastructure endpoints (DB, Qdrant, Ollama)
 │   └── prompts.yaml             # All LLM system prompts (4 scenarios)
@@ -181,28 +185,38 @@ regulatory-compliance-assistant/
 │       ├── Basel_III_Consolidated.pdf
 │       ├── MiFID_II_EU_Directive.pdf
 │       └── RBI_Master_Directions_2026.pdf
-├── src/
-│   ├── app.py                   # Streamlit UI — 3 role-based workspaces
-│   ├── api_services.py          # Business logic — all 4 scenario functions
-│   ├── graph.py                 # LangGraph engine — 4 nodes + HITL breakpoint
-│   ├── database.py              # PostgreSQL connection pool (psycopg3, autocommit)
-│   ├── config_loader.py         # Frozen dataclass config reader
-│   └── ingestion.py             # Qdrant regulatory document ingestor
+├── docs/
+│   ├── architecture_diagram.png # Generated architecture diagram
+│   └── architecture_overview.png# High-level architecture overview diagram
 ├── scripts/
-│   ├── simulate_live_transaction.py  # Inject 5 realistic TXNs through the LLM
 │   ├── seed_graph_states.py          # Push DB records through graph for checkpoints
+│   ├── simulate_live_transaction.py  # Inject 5 realistic TXNs through the LLM
 │   └── verify_scenarios.py           # End-to-end verification of all 4 scenarios
+├── src/
+│   ├── __init__.py
+│   ├── api_services.py          # Business logic — all 4 scenario functions
+│   ├── app.py                   # Streamlit UI — 3 role-based workspaces
+│   ├── config_loader.py         # Frozen dataclass config reader
+│   ├── database.py              # PostgreSQL connection pool (psycopg3, autocommit)
+│   ├── graph.py                 # LangGraph engine — 4 nodes + HITL breakpoint
+│   └── ingestion.py             # Qdrant regulatory document ingestor
 ├── tests/
 │   ├── results/                 # UI screenshots from test runs
+│   │   ├── audit_report_generation.png
+│   │   ├── compliance_head_view.png
+│   │   ├── compliance_officer_view.png
+│   │   ├── internal_audit_view.png
+│   │   ├── qa_chat.png
+│   │   ├── regulatory_change_impact.png
+│   │   └── regulatory_change_impact_analysis.png
 │   └── test_api_services.py     # Unit tests
-├── docs/
-│   └── architecture_generated.png
+├── agents.md                    # Coding guardrails & development principles
 ├── architecture.mermaid         # Full system diagram (Mermaid source)
 ├── assessment_report.md         # Detailed architecture assessment (ATAM framework)
-├── agents.md                    # Coding guardrails & development principles
 ├── docker-compose.yaml          # PostgreSQL + Qdrant containers
 ├── init.sql                     # Idempotent schema + seed data
-└── requirements.txt
+├── requirements.txt
+└── session-context.md           # Session history and context details
 ```
 
 ---

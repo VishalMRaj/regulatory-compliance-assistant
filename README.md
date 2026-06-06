@@ -12,7 +12,7 @@
 ## Architecture
 
 <p align="center">
-  <img src="docs/architecture_generated.png" alt="System Architecture" width="100%"/>
+  <img src="docs/architecture_diagram.png" alt="System Architecture" width="100%"/>
 </p>
 
 <details>

@@ -1,0 +1,130 @@
+flowchart TB
+    %% --- Styling Configurations ---
+    classDef interface fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px,color:#000;
+    classDef compute fill:#fff3e0,stroke:#ff9800,stroke-width:2px,color:#000;
+    classDef database fill:#e8f5e9,stroke:#4caf50,stroke-width:2px,color:#000;
+    classDef monitor fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px,color:#000;
+    classDef ingestion fill:#fce4ec,stroke:#e91e63,stroke-width:2px,color:#000;
+    classDef external fill:#eceff1,stroke:#607d8b,stroke-width:2px,color:#000;
+
+    %% --- External Event Sources ---
+    subgraph ExternalSources ["🌍 External Transaction Sources (Production)"]
+        direction LR
+        SWIFT["SWIFT / SEPA Gateway<br>(Cross-border Webhook)"]:::external
+        CBS["Core Banking System<br>(Temenos / Finacle)"]:::external
+        TMS["Transaction Monitoring<br>System (Actimize)"]:::external
+    end
+
+    %% --- Ingestion Layer ---
+    subgraph Ingestion ["📡 Ingestion Layer (Production: FastAPI / Dev: Seed Script)"]
+        direction TB
+        INGEST["POST /api/v1/screen<br>1. Validate payload schema<br>2. Write compliance_sessions → SUSPENDED<br>3. Call submit_transaction_screening()<br>4. Return 202 Accepted (async)"]:::ingestion
+    end
+
+    %% --- User/Actor Boundary ---
+    subgraph Users ["🌐 Role-Based User Interfaces (Streamlit)"]
+        direction LR
+        CO["👮 Compliance Officer<br>• Risk Inbox & Review<br>• Regulatory Q&A (FAST_RAG)"]:::interface
+        IA["🔍 Internal Auditor<br>• Historical Ledger<br>• Change Impact Analysis"]:::interface
+        CH["📈 Compliance Head<br>• KPI Dashboard<br>• Report Generator"]:::interface
+    end
+
+    %% --- Application Runtime Boundary ---
+    subgraph AppServer ["🚀 Streamlit Application Layer"]
+        direction TB
+        UI["Main Entry Console (app.py)<br>Role Selection Engine"]:::compute
+        API["Data Access Services (api_services.py)<br>• submit_transaction_screening()<br>• query_regulatory_knowledge()<br>• analyze_change_impact()<br>• generate_compliance_report()"]:::compute
+    end
+
+    %% --- Multi-Agent Orchestration Loop ---
+    subgraph GraphEngine ["🕸️ LangGraph Deterministic Execution Engine (graph.py)"]
+        direction TB
+
+        subgraph AgenticLoop ["🔄 AGENTIC_CHECK Path — Scenario 2: Transaction Screening"]
+            N1["1. Node: retrieve_context<br>(PIT Filter on Qdrant)"]:::compute
+            N2["2. Node: analyze_compliance<br>DeepSeek-R1 via Ollama<br>→ {risk_rating, notes}"]:::compute
+            N3{"3. ⏸ human_review<br>HITL Breakpoint<br>State → Postgres Checkpoint"}:::monitor
+            N4["4. Node: log_audit<br>Sync to Langfuse"]:::compute
+
+            N1 --> N2
+            N2 --> N3
+            N3 -->|"Officer Approves / Flags<br>→ Graph Resumes"| N4
+        end
+
+        subgraph FastPath ["⚡ FAST_RAG Path — Scenario 1: Regulatory Q&A"]
+            FRAG["Llama3 via Ollama<br>Qdrant Semantic Search<br>→ {answer, citations}"]:::compute
+        end
+
+        subgraph ImpactPath ["⚡ FAST_RAG Path — Scenario 3: Change Impact"]
+            IMPACT["DeepSeek-R1 via Ollama<br>New circular + last 20 TXNs<br>→ {urgency, affected_types}"]:::compute
+        end
+
+        subgraph ReportPath ["📄 Scenario 4: Audit Report Generation"]
+            REPORT["DeepSeek-R1 via Ollama<br>Date-range TXN data<br>→ Markdown audit report"]:::compute
+        end
+    end
+
+    %% --- Infrastructure Persistence Layer ---
+    subgraph DataStorage ["🗄️ Regional Infrastructure (Docker Compose)"]
+        direction LR
+        subgraph Postgres ["🐘 Unified PostgreSQL State Instance"]
+            DB_Session[("compliance_sessions<br>(Relational Tracking)")]:::database
+            DB_Check[("langgraph_checkpoints<br>(Binary Agent State)")]:::database
+            DB_Audit[("compliance_audit_log<br>(Immutable Ledger)")]:::database
+        end
+
+        QDRANT[("Qdrant Vector DB<br>regulatory_compliance<br>10 regulation chunks<br>Basel III · MiFID II · RBI")]:::database
+        LANGFUSE[("Langfuse Server<br>OpenTelemetry Trace Logs")]:::monitor
+    end
+
+    %% --- External Sources to Ingestion ---
+    SWIFT -->|Webhook POST| INGEST
+    CBS -->|Event Stream| INGEST
+    TMS -->|Escalation API| INGEST
+
+    %% --- Ingestion to DB and Graph ---
+    INGEST -->|"INSERT status=SUSPENDED"| DB_Session
+    INGEST ==>|"invoke graph(thread_id=session_id)"| N1
+
+    %% --- User to App Layer ---
+    CO <=>|"Select task / Submit decision"| UI
+    IA -->|"View ledger / Paste circular"| UI
+    CH -->|"View KPIs / Request report"| UI
+
+    UI <--> API
+
+    %% --- API to DB ---
+    API <-->|"Read/Update sessions"| DB_Session
+    API -->|"Fetch audit log"| DB_Audit
+
+    %% --- API to Graph paths ---
+    API ==>|"Scenario 1: Q&A question"| FRAG
+    API ==>|"Scenario 3: New circular text"| IMPACT
+    API ==>|"Scenario 4: Date range"| REPORT
+
+    %% --- Graph Nodes to Qdrant ---
+    N1 -.->|"PIT-filtered semantic search"| QDRANT
+    FRAG -.->|"Semantic search + citations"| QDRANT
+
+    %% --- Change Impact to DB ---
+    IMPACT -.->|"Read last 20 TXNs"| DB_Session
+
+    %% --- Report to DB ---
+    REPORT -.->|"Read TXNs in date range"| DB_Session
+
+    %% --- Checkpoint link ---
+    N3 <-->|"Serialize / Hydrate state snapshot"| DB_Check
+    DB_Session ---|"session_id == thread_id<br>Unified Data Footprint"| DB_Check
+
+    %% --- Audit log link ---
+    N4 ==>|"Transmit trace tree"| LANGFUSE
+    IA -.->|"Deep-link trace URLs"| LANGFUSE
+
+    %% --- Officer resumes graph via API ---
+    API ==>|"resume_workflow_checkpoint()"| N3
+
+    %% --- Styling ---
+    style AgenticLoop fill:#fafafa,stroke:#607d8b,stroke-dasharray: 5 5;
+    style FastPath fill:#fafafa,stroke:#0288d1,stroke-dasharray: 5 5;
+    style ImpactPath fill:#fafafa,stroke:#0288d1,stroke-dasharray: 5 5;
+    style ReportPath fill:#fafafa,stroke:#388e3c,stroke-dasharray: 5 5;

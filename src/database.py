@@ -32,8 +32,8 @@ class DatabaseManager:
         )
 
         try:
-            self.pool = ConnectionPool(conninfo=self.conninfo, open=True)
-            logger.info("Connection pool initialized.")
+            self.pool = ConnectionPool(conninfo=self.conninfo, open=True, kwargs={"autocommit": True})
+            logger.info("Connection pool initialized with autocommit.")
 
             if run_schema_init:
                 try:
@@ -74,22 +74,26 @@ class DatabaseManager:
             raise DatabaseError(f"Connection issue: {e}")
 
     def initialize_schema(self):
-        ddl_script = """
-        CREATE TABLE IF NOT EXISTS session_interaction (
-            session_id VARCHAR PRIMARY KEY,
-            initiated_by VARCHAR,
-            status VARCHAR,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        """
+        import os
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        init_sql_path = os.path.join(base_dir, "init.sql")
+        
+        if not os.path.exists(init_sql_path):
+            logger.error(f"Schema file not found at: {init_sql_path}")
+            raise SchemaInitializationError(f"File not found: {init_sql_path}")
+
         try:
+            with open(init_sql_path, "r") as f:
+                ddl_script = f.read()
+            
             with self.pool.connection(timeout=2.0) as conn:
                 with conn.cursor() as cur:
                     cur.execute(ddl_script)
-                    conn.commit()
-            logger.info("Database schema initialized successfully.")
+                    if not conn.autocommit:
+                        conn.commit()
+            logger.info("Database schema initialized successfully from init.sql.")
         except Exception as e:
-            logger.error(f"Failed to initialize schema: {e}")
+            logger.error(f"Failed to initialize schema from init.sql: {e}")
             raise SchemaInitializationError(f"DDL execution failed: {e}")
 
 def get_db_manager(run_schema_init: bool = True) -> DatabaseManager:

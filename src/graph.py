@@ -2,10 +2,16 @@ import logging
 import os
 from typing import Dict, Any, Optional
 
+import psycopg
 from langfuse.langchain import CallbackHandler
 from langgraph.graph import StateGraph
 from langgraph.checkpoint.postgres import PostgresSaver
 from src.database import get_db_manager
+import json
+from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_ollama import ChatOllama
+from src.config_loader import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +23,77 @@ class WorkflowPersistenceError(WorkflowError):
     """Raised when state persistence fails."""
     pass
 
-class ComplianceGraphState(Dict[str, Any]):
+from typing import Dict, Any, Optional, TypedDict
+
+class ComplianceGraphState(TypedDict, total=False):
     """Standard state for the compliance workflow."""
-    pass
+    transaction_payload: Dict[str, Any]
+    risk_rating: str
+    notes: str
+    officer_approval: str
+    ambiguous_data_input: bool
+    context_retrieved: bool
+    session_id: str
+
+def retrieve_context(state: ComplianceGraphState) -> ComplianceGraphState:
+    """Simulates fetching regulatory context from Qdrant."""
+    logger.info("Node: retrieve_context executed.")
+    return {"context_retrieved": True}
+
+def analyze_compliance(state: ComplianceGraphState) -> ComplianceGraphState:
+    """Uses LLM to evaluate the payload."""
+    logger.info("Node: analyze_compliance executed.")
+    payload = state.get("transaction_payload", {})
+    
+    if not config or not config.llm:
+        logger.error("LLM configuration is missing.")
+        return {"risk_rating": "HIGH", "notes": "System Error: Missing LLM config."}
+
+    try:
+        # Initialize the ChatOllama model
+        llm = ChatOllama(
+            base_url=config.llm.base_url,
+            model=config.llm.reasoning_model,
+            format="json", # Instruct ollama to return valid JSON
+            temperature=0
+        )
+        
+        system_prompt = config.llm.system_prompt
+        human_prompt = f"Transaction Payload: {json.dumps(payload)}"
+        
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_prompt)
+        ]
+        
+        response = llm.invoke(messages)
+        
+        # Parse the JSON response
+        try:
+            result = json.loads(response.content)
+            risk_rating = result.get("risk_rating", "HIGH")
+            notes = result.get("notes", "No notes provided by LLM.")
+        except json.JSONDecodeError:
+            logger.error(f"LLM did not return valid JSON: {response.content}")
+            risk_rating = "HIGH"
+            notes = f"LLM parsing error. Raw output: {response.content}"
+            
+        return {"risk_rating": risk_rating, "notes": notes}
+
+    except Exception as e:
+        logger.error(f"Error invoking LLM: {e}")
+        return {"risk_rating": "HIGH", "notes": f"LLM Invocation Error: {e}"}
+
+def human_review(state: ComplianceGraphState) -> ComplianceGraphState:
+    """Breakpoint node for human intervention."""
+    logger.info("Node: human_review executed (Human provided input).")
+    # State update should come from the human via resume_workflow(inputs={...})
+    return {}
+
+def log_audit(state: ComplianceGraphState) -> ComplianceGraphState:
+    """Simulates syncing final decision to Langfuse/Audit Log."""
+    logger.info("Node: log_audit executed.")
+    return {}
 
 class ComplianceWorkflow:
     def __init__(self):
@@ -29,9 +103,18 @@ class ComplianceWorkflow:
 
     def _initialize_workflow(self) -> StateGraph:
         builder = StateGraph(ComplianceGraphState)
-        builder.add_node("start", lambda state: state)
-        builder.set_entry_point("start")
-        builder.set_finish_point("start")
+        
+        builder.add_node("retrieve_context", retrieve_context)
+        builder.add_node("analyze_compliance", analyze_compliance)
+        builder.add_node("human_review", human_review)
+        builder.add_node("log_audit", log_audit)
+        
+        builder.set_entry_point("retrieve_context")
+        builder.add_edge("retrieve_context", "analyze_compliance")
+        builder.add_edge("analyze_compliance", "human_review")
+        builder.add_edge("human_review", "log_audit")
+        builder.set_finish_point("log_audit")
+        
         return builder
 
     @property
@@ -45,10 +128,11 @@ class ComplianceWorkflow:
             checkpointer = PostgresSaver(self.db_manager.pool)
             # Ensure tables exist for checkpoints once during compilation
             checkpointer.setup()
-            return self.workflow.compile(checkpointer=checkpointer)
+            return self.workflow.compile(checkpointer=checkpointer, interrupt_before=["human_review"])
         except Exception as e:
             logger.error(f"Failed to compile graph with persistence: {e}")
             raise WorkflowPersistenceError(f"Compilation failed: {e}")
+
 
     def get_state(self, thread_id: str) -> Optional[Dict[str, Any]]:
         """Reads the current state snapshot for a given thread_id."""

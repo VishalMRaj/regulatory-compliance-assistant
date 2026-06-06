@@ -1,22 +1,94 @@
 {
   "documents": [
     {
-      "doc_id": "REG-2024-001",
-      "text": "All financial institutions must maintain a minimum capital adequacy ratio of 10%.",
-      "version": "1.0",
+      "doc_id": "BASEL-III-2023-T1-001",
+      "text": "Under Basel III as amended in 2023, the minimum Common Equity Tier 1 (CET1) capital ratio is 4.5% of risk-weighted assets. Banks must additionally hold a Capital Conservation Buffer of 2.5%, bringing the effective CET1 floor to 7%. Globally Systemically Important Banks (G-SIBs) are subject to an additional surcharge of 1% to 3.5% depending on their systemic importance bucket.",
+      "version": "3.1",
       "status": "active",
-      "effective_start": "2024-01-01",
+      "effective_start": "2023-01-01",
       "effective_end": null,
       "jurisdiction": "US"
     },
     {
-      "doc_id": "REG-2024-002",
-      "text": "Customer due diligence must be performed for all transactions exceeding $10,000.",
-      "version": "2.1",
+      "doc_id": "BASEL-III-2023-T1-002",
+      "text": "The Tier 1 capital ratio, which includes CET1 and Additional Tier 1 instruments, must be at least 6% of total risk-weighted assets under Basel III 2023 revisions. Additional Tier 1 (AT1) instruments must be perpetual with no incentive to redeem and must absorb losses at the point of non-viability.",
+      "version": "3.1",
       "status": "active",
-      "effective_start": "2024-03-15",
+      "effective_start": "2023-01-01",
+      "effective_end": null,
+      "jurisdiction": "US"
+    },
+    {
+      "doc_id": "BASEL-III-2023-LCR-001",
+      "text": "The Liquidity Coverage Ratio (LCR) requires banks to hold sufficient high-quality liquid assets (HQLA) to cover 30-day net cash outflows under stress. The minimum LCR is 100%. Level 1 HQLA (cash, central bank reserves) face no haircut, while Level 2A (certain sovereign bonds) face a 15% haircut and Level 2B assets (equities, RMBS) face 25%-50% haircuts.",
+      "version": "3.1",
+      "status": "active",
+      "effective_start": "2023-01-01",
+      "effective_end": null,
+      "jurisdiction": "US"
+    },
+    {
+      "doc_id": "MIFID-II-2024-BEST-EXEC-001",
+      "text": "MiFID II Article 27 mandates that investment firms take all sufficient steps to obtain the best possible result for clients when executing orders. Firms must establish and publish an order execution policy and review it annually. Best execution must consider price, costs, speed, likelihood of execution, size, and nature of the order.",
+      "version": "2.4",
+      "status": "active",
+      "effective_start": "2024-01-01",
       "effective_end": null,
       "jurisdiction": "EU"
+    },
+    {
+      "doc_id": "MIFID-II-2024-REPORTING-001",
+      "text": "Under MiFID II transaction reporting requirements, investment firms must report completed transactions to the national competent authority no later than the close of the following working day (T+1). Reports must include LEI of the buyer and seller, ISIN of the instrument, price, quantity, execution venue, and timestamp to microsecond precision.",
+      "version": "2.4",
+      "status": "active",
+      "effective_start": "2024-01-01",
+      "effective_end": null,
+      "jurisdiction": "EU"
+    },
+    {
+      "doc_id": "MIFID-II-2024-THRESHOLD-001",
+      "text": "MiFID II systematic internaliser (SI) thresholds require investment firms dealing on own account to assess quarterly whether they exceed the SI thresholds. For equity instruments, the threshold is 0.4% of total EU turnover with a minimum of 15 transactions per week. Cross-border EU settlements exceeding EUR 500,000 require enhanced due diligence under EMIR Article 9.",
+      "version": "2.4",
+      "status": "active",
+      "effective_start": "2024-01-01",
+      "effective_end": null,
+      "jurisdiction": "EU"
+    },
+    {
+      "doc_id": "RBI-MD-2026-FEMA-001",
+      "text": "Under RBI Master Direction on Foreign Exchange Management (Cross Border Merger) Regulations 2018, as updated in 2026 circular FEMA.389, any outbound remittance exceeding INR 2,50,00,000 (USD 300,000 equivalent) per financial year under the Liberalised Remittance Scheme (LRS) requires prior RBI approval. Remittances to jurisdictions listed on FATF non-cooperative list are prohibited.",
+      "version": "2026.1",
+      "status": "active",
+      "effective_start": "2026-01-01",
+      "effective_end": null,
+      "jurisdiction": "IN"
+    },
+    {
+      "doc_id": "RBI-MD-2026-KYC-001",
+      "text": "As per RBI Master Direction on KYC dated February 25, 2016, as amended through 2026, regulated entities must conduct Customer Due Diligence (CDD) for all transactions above INR 50,000 in value or its equivalent in foreign currency. Enhanced Due Diligence (EDD) is mandatory for Politically Exposed Persons (PEPs) and transactions from high-risk jurisdictions regardless of amount.",
+      "version": "2026.2",
+      "status": "active",
+      "effective_start": "2026-02-01",
+      "effective_end": null,
+      "jurisdiction": "IN"
+    },
+    {
+      "doc_id": "RBI-MD-2026-CAR-001",
+      "text": "RBI Master Circular on Basel III Capital Regulations requires Scheduled Commercial Banks to maintain a minimum Capital to Risk-weighted Assets Ratio (CRAR) of 11.5% (including Capital Conservation Buffer of 2.5%). The minimum Tier 1 capital ratio for Indian banks is 8.5%, and the minimum CET1 ratio is 7.375% including capital conservation buffer as of January 2026.",
+      "version": "2026.1",
+      "status": "active",
+      "effective_start": "2026-01-01",
+      "effective_end": null,
+      "jurisdiction": "IN"
+    },
+    {
+      "doc_id": "GLOBAL-AML-2024-SANCTION-001",
+      "text": "FATF Recommendation 6 requires countries to implement targeted financial sanctions without delay for persons and entities designated by the UN Security Council. Financial institutions must screen all transactions against OFAC SDN list, UN Consolidated Sanctions list, and EU Consolidated Financial Sanctions list. Transactions to or from sanctioned jurisdictions must be blocked and reported to the Financial Intelligence Unit within 48 hours.",
+      "version": "2024.1",
+      "status": "active",
+      "effective_start": "2024-06-01",
+      "effective_end": null,
+      "jurisdiction": "US"
     }
   ]
 }

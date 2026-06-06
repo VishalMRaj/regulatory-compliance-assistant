@@ -37,9 +37,20 @@ class QdrantConfig:
     collection_name: str
 
 @dataclass(frozen=True)
+class LLMConfig:
+    base_url: str
+    reasoning_model: str
+    routing_model: str
+    system_prompt: str
+    qa_prompt: str
+    change_impact_prompt: str
+    report_prompt: str
+
+@dataclass(frozen=True)
 class AppConfig:
     database: DatabaseConfig
     qdrant: QdrantConfig
+    llm: LLMConfig
 
 def get_env_or_config(config_dict: Dict, keys: list, env_var: str, default: Any = None) -> Any:
     env_val = os.getenv(env_var)
@@ -104,7 +115,33 @@ def load_config(config_path: str = "config/config.yaml") -> AppConfig:
             collection_name=qd_coll
         )
 
-        return AppConfig(database=db_config, qdrant=qdrant_config)
+        # Prompts
+        prompts_dict = {}
+        prompts_path = os.path.join(os.path.dirname(config_path), "prompts.yaml")
+        if os.path.exists(prompts_path):
+            with open(prompts_path, "r") as f:
+                prompts_dict = yaml.safe_load(f) or {}
+
+        # LLM
+        llm_base = get_env_or_config(config_dict, ["llm", "base_url"], "LLM_BASE_URL", "http://localhost:11434")
+        llm_reasoning = get_env_or_config(config_dict, ["llm", "reasoning_model"], "LLM_REASONING_MODEL", "deepseek-r1")
+        llm_routing = get_env_or_config(config_dict, ["llm", "routing_model"], "LLM_ROUTING_MODEL", "llama3")
+        system_prompt = get_env_or_config(prompts_dict, ["analyze_compliance", "system_prompt"], "LLM_SYSTEM_PROMPT", "Analyze the payload.")
+        qa_prompt = get_env_or_config(prompts_dict, ["regulatory_qa", "system_prompt"], "LLM_QA_PROMPT", "Answer the regulatory question.")
+        change_impact_prompt = get_env_or_config(prompts_dict, ["change_impact", "system_prompt"], "LLM_CHANGE_PROMPT", "Analyze regulatory change impact.")
+        report_prompt = get_env_or_config(prompts_dict, ["report_generation", "system_prompt"], "LLM_REPORT_PROMPT", "Generate a compliance report.")
+
+        llm_config = LLMConfig(
+            base_url=llm_base,
+            reasoning_model=llm_reasoning,
+            routing_model=llm_routing,
+            system_prompt=system_prompt,
+            qa_prompt=qa_prompt,
+            change_impact_prompt=change_impact_prompt,
+            report_prompt=report_prompt
+        )
+
+        return AppConfig(database=db_config, qdrant=qdrant_config, llm=llm_config)
     except Exception as e:
         logger.error(f"Configuration validation failed: {e}")
         raise ConfigValidationError(f"Validation failed: {e}")
